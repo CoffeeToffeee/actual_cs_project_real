@@ -8,7 +8,7 @@ import math
 screen_width, screen_height = pg.size()
 
 # Setting up the camera
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 cap.set(3, screen_width)  # Set the width of the capture
 cap.set(4, screen_height)  # Set the height of the capture
 
@@ -46,32 +46,32 @@ while True:
 
     cv2.imshow("Hey its you!", img)
 
-    # Print statements for debugging
-    print("lmList:", lmList)
+    #    print("lmList:", lmList)
 
     if lmList:
         if lmList[8] != 0:
             if lmList[8][1] != 0 and lmList[8][2] != 0:
-                print("Moving cursor to:", lmList[8][1], lmList[8][2])
+                #   print("Moving cursor to:", lmList[8][1], lmList[8][2] + 50)
                 pg.moveTo(lmList[8][1], lmList[8][2])
 
-            if lmList[8] and lmList[4] and lmList[20]:
+            if lmList[8] and lmList[4] and lmList[20] and lmList[16] and lmList[12]:
                 thumb_x, thumb_y = lmList[4][1], lmList[4][2]
                 index_x, index_y = lmList[8][1], lmList[8][2]
                 pinky_x, pinky_y = lmList[20][1], lmList[20][2]
+                ring_x, ring_y = lmList[16][1], lmList[16][2]
+                mid_x, mid_y = lmList[12][1], lmList[12][2]
 
-                distance_thumb = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)
-                distance_pinky = math.sqrt((index_x - pinky_x) ** 2 + (index_y - pinky_y) ** 2)
+                distance_thumb = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)  # index thumb
+                distance_pinky = math.sqrt((index_x - pinky_x) ** 2 + (index_y - pinky_y) ** 2)  # index pinky
+                distance_ring_middle = math.sqrt((ring_x - mid_x) ** 2 + (ring_y - mid_y) ** 2)  # index and pinky
+
                 pinch_threshold = 50
 
                 if distance_thumb < pinch_threshold:
-                    print("Clicking")
-                    pg.click()
+                    print("Clicking Space bar")
+                    pg.press('space')
 
-                # Check if distance_pinky is below the threshold
                 if distance_pinky < pinch_threshold:
-                    print("Exiting the code")
-                    break
+                    print("Pressing escape")
+                    pg.press("esc")
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break

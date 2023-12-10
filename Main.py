@@ -21,7 +21,21 @@ mpDraw = mp.solutions.drawing_utils
 pTime = 0
 cTime = 0
 lmList = []
+pointer_mode = False
 Draw = True  # Used to draw the landmarks
+
+
+def toggle(thing):
+    thing = not thing
+
+
+def dist_thumb(landmark):
+    if lmList and lmList[landmark]:
+        landmark_x, landmark_y = lmList[landmark][1], lmList[landmark][2]
+        distance = math.sqrt(
+            (landmark_x - thumb_x) ** 2 + (landmark_y - thumb_y) ** 2)  # distance of that landmark wrt to thumb
+
+
 t.sleep(2)
 use = input("What do you want to use the app for [game,spotify]: ")
 while True:
@@ -64,37 +78,55 @@ while True:
                 ring_x, ring_y = lmList[16][1], lmList[16][2]
                 mid_x, mid_y = lmList[12][1], lmList[12][2]
 
-                distance_thumb = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)  # index thumb
-                distance_pinky = math.sqrt((index_x - pinky_x) ** 2 + (index_y - pinky_y) ** 2)  # index pinky
-                distance_ring_middle = math.sqrt((ring_x - mid_x) ** 2 + (ring_y - mid_y) ** 2)  # index and pinky
-
-                pinch_threshold = 30
+                distance_index = math.sqrt((index_x - thumb_x) ** 2 + (index_y - thumb_y) ** 2)  # index thumb
+                distance_pinky = math.sqrt((pinky_x - thumb_x) ** 2 + (pinky_y - thumb_y) ** 2)  # index pinky
+                distance_ring = math.sqrt((ring_x - thumb_x) ** 2 + (ring_y - thumb_y) ** 2)  # ring and thumb
+                distance_middle = math.sqrt((mid_x - thumb_x) ** 2 + (mid_y - thumb_y) ** 2)
+                pinch_threshold = 40
 
             if use == "spotify":
-                if distance_thumb < pinch_threshold:
-                    print("Play/Pause")
-                    pg.press('space')  # Simulate pressing the spacebar for play/pause
+                if not pointer_mode:
+                    if distance_index < pinch_threshold:
+                        print("Play/Pause")
+                        pg.press('space')  # Simulate pressing the spacebar for play/pause
 
-                if distance_pinky < pinch_threshold:
-                    print("Skipping track")
-                    pg.hotkey('command', 'right')  # Simulate pressing Command + right arrow for skipping track
+                    if distance_pinky < pinch_threshold:
+                        print("Skipping track")
+                        pg.hotkey('command', 'right')  # Simulate pressing Command + right arrow for skipping track
 
-                if distance_ring_middle < pinch_threshold:
+                if distance_ring < pinch_threshold:
                     print("Exiting")
                     exit()
+
+                if distance_middle < pinch_threshold:
+                    toggle(pointer_mode)
+                    if pointer_mode:
+                        print("Enabling pointer only mode")
+                    else:
+                        print("Disabling pointer only mode")
+
 
             elif use == "game":
-                if distance_thumb < pinch_threshold:
-                    print("Clicking Space bar")
-                    pg.press('space')
+                if not pointer_mode:
+                    if distance_index < pinch_threshold:
+                        print("Clicking Space bar")
+                        pg.press('space')
 
-                if distance_pinky < pinch_threshold:
-                    print("Pressing escape")
-                    pg.press("esc")
+                    if distance_pinky < pinch_threshold:
+                        print("Pressing escape")
+                        pg.press("esc")
 
-                if distance_ring_middle < pinch_threshold:
+                if distance_ring < pinch_threshold:
                     print("Exiting")
+                    pg.press("esc")
                     exit()
+
+                if distance_middle < pinch_threshold:
+                    toggle(pointer_mode)
+                    if pointer_mode:
+                        print("Enabling pointer only mode")
+                    else:
+                        print("Disabling pointer only mode")
             else:
                 print("Invalid input")
                 exit()

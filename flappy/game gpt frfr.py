@@ -2,169 +2,165 @@ import random
 import sys
 import pygame
 from pygame.locals import *
-
-# Constants
-WINDOW_WIDTH = 800
-WINDOW_HEIGHT = 600
-ELEVATION = WINDOW_HEIGHT * 0.8
-FRAME_PER_SECOND = 30
-PIPE_IMAGE = "path_to_pipe_image.png"
-BACKGROUND_IMAGE = "path_to_background_image.jpg"
-BIRD_IMAGE = "path_to_bird_image.png"
-BASE_IMAGE = "path_to_base_image.jpg"
+import os
 
 # Initialize Pygame
 pygame.init()
 
-# Function to load sounds
-def load_sound(file_path):
-    pygame.mixer.init()
-    sound = pygame.mixer.Sound(file_path)
+# Set window dimensions
+window_width = 1280
+window_height = 720
+window = pygame.display.set_mode((window_width, window_height))
+
+# Define paths for images and sounds
+script_dir = os.path.dirname(os.path.abspath(__file__))
+images_path = os.path.join(script_dir, 'images')
+sounds_path = os.path.join(script_dir, 'sounds')
+
+# Load images
+background_image = os.path.join(images_path, 'background1.jpg')
+yeplayer_image = os.path.join(images_path, 'kanye (Custom).png')
+sealevel_image = os.path.join(images_path, 'base.jpg')
+pipeimage = os.path.join(images_path, 'pipe.png')
+
+# Load sounds
+def load_sound(file_name):
+    sound_path = os.path.join(sounds_path, file_name)
+    sound = pygame.mixer.Sound(sound_path)
     return sound
+
+# Set up game parameters
+elevation = window_height * 0.8
+framepersecond = 30
+your_score = 0
+pipe_vel_x = -10
+ye_velocity_y = -9
+ye_max_vel_y = 10
+ye_min_vel_y = -8
+ye_acc_y = 1
+ye_mid_pos = window_width / 5 + pygame.image.load(yeplayer_image).get_width() / 2
+ye_flap_velocity = -12
+ye_flapped = False
+pipe_height = pygame.image.load(pipeimage).get_height()
+offset = window_height / 3
+cooldown = 0.1
 
 # Function to create a pipe
 def create_pipe():
-    offset = WINDOW_HEIGHT / 3
-    pipe_height = PIPE_IMAGES[0].get_height()
-    y2 = offset + random.randrange(
-        0, int(WINDOW_HEIGHT - BASE_IMAGE.get_height() - 1.2 * offset)
-    )
-    pipe_x = WINDOW_WIDTH + 10
+    y2 = offset + random.randrange(0, int(window_height - pygame.image.load(sealevel_image).get_height() - 1.2 * offset))
+    pipe_x = window_width + 10
     y1 = pipe_height - y2 + offset
-    pipe = [
-        # Upper Pipe
-        {"x": pipe_x, "y": -y1},
-        # Lower Pipe
-        {"x": pipe_x, "y": y2},
-    ]
-    return pipe
-
-# Function to check if the bird collides with pipes or goes out of bounds
-def is_game_over(horizontal, vertical, up_pipes, down_pipes):
-    if vertical > ELEVATION or vertical < 0:
-        return True
-
-    for pipe in up_pipes + down_pipes:
-        if (
-            vertical + BIRD_IMAGE.get_height() > pipe["y"]
-            and abs(horizontal - pipe["x"]) < PIPE_IMAGES[0].get_width()
-        ):
-            return True
-
-    return False
-
-# Function to run the Flappy Bird game
-def flappy_bird():
-    pygame.init()
-    window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    pygame.display.set_caption("Flappy Bird")
-
-    # Load game images
-    BACKGROUND_IMAGE = pygame.image.load(BACKGROUND_IMAGE).convert_alpha()
-    BIRD_IMAGE = pygame.image.load(BIRD_IMAGE).convert_alpha()
-    BASE_IMAGE = pygame.image.load(BASE_IMAGE).convert_alpha()
-    PIPE_IMAGES = [
-        pygame.transform.rotate(pygame.image.load(PIPE_IMAGE).convert_alpha(), 180),
-        pygame.image.load(PIPE_IMAGE).convert_alpha(),
+    return [
+        {'x': pipe_x, 'y': -y1},
+        {'x': pipe_x, 'y': y2}
     ]
 
-    # Load sounds
-    FLAP_SOUND = load_sound("path_to_flap_sound.wav")
-
-    your_score = 0
-
-    horizontal = int(WINDOW_WIDTH / 5)
-    vertical = int(WINDOW_HEIGHT / 2)
+# Main game loop
+def flappy_ye():
+    global ye_velocity_y, ye_flapped, your_score
+    horizontal = int(window_width / 5)
+    vertical = int(window_height / 2)
     ground = 0
 
-    # Pipes to be blitted
-    up_pipes = []
-    down_pipes = []
+    first_pipe = create_pipe()
+    second_pipe = create_pipe()
+    down_pipes = [
+        {'x': window_width + 300 - offset, 'y': first_pipe[1]['y']},
+        {'x': window_width + 300 - offset + (window_width / 2), 'y': second_pipe[1]['y']},
+    ]
+    up_pipes = [
+        {'x': window_width + 300 - offset, 'y': first_pipe[0]['y']},
+        {'x': window_width + 200 - offset + (window_width / 2), 'y': second_pipe[0]['y']},
+    ]
 
-    # Velocities and acceleration
-    pipe_vel_x = -5
-    ye_velocity_y = -9
-    ye_max_vel_y = 10
-    ye_min_vel_y = -8
-    ye_acc_y = 1
-    ye_flap_velocity = -12
-    ye_flapped = False
+    kanye_flap_sound = load_sound('kanye 14.mp3')
 
     while True:
         for event in pygame.event.get():
-            if event.type == QUIT or (
-                event.type == KEYDOWN and event.key == K_ESCAPE
-            ):
+            if event.type == event.type == KEYDOWN and event.key == K_ESCAPE:
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
+            if event.type == KEYDOWN and (event.key == K_SPACE):
                 ye_velocity_y = ye_flap_velocity
                 ye_flapped = True
-                FLAP_SOUND.play()
+                kanye_flap_sound.play()
 
-        # This will return true when the bird crashes
         game_over = is_game_over(horizontal, vertical, up_pipes, down_pipes)
         if game_over:
-            print(f"Your score is {your_score}")
+            load_sound('kanye 1.mp3').play()
             return
 
-        # Check for score
         for pipe in up_pipes:
-            if pipe["x"] + PIPE_IMAGES[0].get_width() < horizontal < pipe["x"] + PIPE_IMAGES[0].get_width() + 5:
+            pipe_mid_pos = pipe['x'] + pygame.image.load(pipeimage).get_width() / 2
+            if pipe_mid_pos <= ye_mid_pos < pipe_mid_pos:
                 your_score += 1
                 print(f"Your score is {your_score}")
 
-        # Normal bird physics when not flapping
         if ye_velocity_y < ye_max_vel_y and not ye_flapped:
             ye_velocity_y += ye_acc_y
 
-        # Flappy moment
         if ye_flapped:
             ye_flapped = False
 
-        # Bird physics regardless of flap
-        player_height = BIRD_IMAGE.get_height()
+        player_height = pygame.image.load(yeplayer_image).get_height()
         vertical = vertical + ye_velocity_y
 
-        # Pipe motion
-        for pipe in up_pipes + down_pipes:
-            pipe["x"] += pipe_vel_x
+        for upper_pipe, lower_pipe in zip(up_pipes, down_pipes):
+            upper_pipe['x'] += pipe_vel_x
+            lower_pipe['x'] += pipe_vel_x
 
-        # Add a new pipe when the first is about to cross the leftmost part of the screen
-        if 0 < up_pipes[0]["x"] < 20:
+        if 0 < up_pipes[0]['x'] < 20:
             new_pipe = create_pipe()
             up_pipes.append(new_pipe[0])
             down_pipes.append(new_pipe[1])
 
-        # Remove pipes that are out of the screen
-        if up_pipes and up_pipes[0]["x"] < -PIPE_IMAGES[0].get_width():
-            up_pipes.pop(0)
-            down_pipes.pop(0)
+        if 0 < up_pipes[0]['x'] < 5:
+            new_pipe = create_pipe()
+            up_pipes.append(new_pipe[0])
 
-        # Blit game images
-        window.blit(BACKGROUND_IMAGE, (0, 0))
+        window.blit(pygame.image.load(background_image).convert_alpha(), (0, 0))
         for upper_pipe, lower_pipe in zip(up_pipes, down_pipes):
-            window.blit(PIPE_IMAGES[0], (upper_pipe["x"], upper_pipe["y"]))
-            window.blit(PIPE_IMAGES[1], (lower_pipe["x"], lower_pipe["y"]))
+            window.blit(pygame.transform.rotate(pygame.image.load(pipeimage).convert_alpha(), 180),
+                        (upper_pipe['x'], upper_pipe['y']))
+            window.blit(pygame.image.load(pipeimage).convert_alpha(),
+                        (lower_pipe['x'], lower_pipe['y']))
 
-        window.blit(BASE_IMAGE, (ground, ELEVATION))
-        window.blit(BIRD_IMAGE, (horizontal, vertical))
+        window.blit(pygame.image.load(sealevel_image).convert_alpha(), (ground, elevation))
+        window.blit(pygame.image.load(yeplayer_image).convert_alpha(), (horizontal, vertical))
 
-        # Refreshing the game window
         pygame.display.update()
-        pygame.time.Clock().tick(FRAME_PER_SECOND)
+        pygame.time.Clock().tick(framepersecond)
+
+# Function to check if the game is over
+def is_game_over(horizontal, vertical, up_pipes, down_pipes):
+    if vertical > elevation or vertical < 0:
+        return True
+    ye_mid_pos = horizontal + pygame.image.load(yeplayer_image).get_width() / 2
+
+    for pipe in down_pipes:
+        if (vertical + pygame.image.load(yeplayer_image).get_height() > pipe['y'] and
+                abs(horizontal - (pipe['x']) * 2) < pygame.image.load(pipeimage).get_width()):
+            return True
+    return False
 
 if __name__ == "__main__":
     print("WELCOME TO THE FLAPPY BIRD GAME")
     print("Press space or enter to start the game")
 
     while True:
-        for event in pygame.event.get():
-            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-                pygame.quit()
-                sys.exit()
-            elif event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
-                flappy_bird()
-            else:
-                # Handle any other events
-                pass
+        horizontal = int(window_width / 5)
+        vertical = int((window_height - pygame.image.load(yeplayer_image).get_height()) / 2)
+        ground = 0
+        while True:
+            for event in pygame.event.get():
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
+                    flappy_ye()
+                else:
+                    window.blit(pygame.image.load(background_image).convert_alpha(), (0, 0))
+                    window.blit(pygame.image.load(yeplayer_image).convert_alpha(), (horizontal, vertical))
+                    window.blit(pygame.image.load(sealevel_image).convert_alpha(), (ground, elevation))
+                    pygame.display.update()
+                    pygame.time.Clock().tick(framepersecond)

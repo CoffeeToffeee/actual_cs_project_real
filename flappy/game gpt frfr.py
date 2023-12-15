@@ -23,11 +23,12 @@ yeplayer_image = os.path.join(images_path, 'kanye (Custom).png')
 sealevel_image = os.path.join(images_path, 'base.jpg')
 pipeimage = os.path.join(images_path, 'pipe.png')
 
+
 # Load sounds
-def load_sound(file_name):
+def load_sound(file_name): 
     sound_path = os.path.join(sounds_path, file_name)
-    sound = pygame.mixer.Sound(sound_path)
-    return sound
+    pygame.mixer.music.load(sound_path)
+    pygame.mixer.music.play()
 
 # Set up game parameters
 elevation = window_height * 0.8
@@ -75,6 +76,21 @@ def flappy_ye():
 
     kanye_flap_sound = load_sound('kanye 14.mp3')
 
+    # Define the game_images dictionary
+    game_images = {
+        'scoreimages': [
+            pygame.image.load(os.path.join(images_path, f'{i}.png')).convert_alpha()
+            for i in range(10)
+        ],
+        'yebird': pygame.image.load(yeplayer_image).convert_alpha(),
+        'sea_level': pygame.image.load(sealevel_image).convert_alpha(),
+        'background': pygame.image.load(background_image).convert_alpha(),
+        'pipeimage': [
+            pygame.transform.rotate(pygame.image.load(pipeimage).convert_alpha(), 180),
+            pygame.image.load(pipeimage).convert_alpha()
+        ],
+    }
+
     while True:
         for event in pygame.event.get():
             if event.type == event.type == KEYDOWN and event.key == K_ESCAPE:
@@ -85,13 +101,13 @@ def flappy_ye():
                 ye_flapped = True
                 kanye_flap_sound.play()
 
-        game_over = is_game_over(horizontal, vertical, up_pipes, down_pipes)
+        game_over = is_game_over(horizontal, vertical, up_pipes, down_pipes, game_images)
         if game_over:
             load_sound('kanye 1.mp3').play()
             return
 
         for pipe in up_pipes:
-            pipe_mid_pos = pipe['x'] + pygame.image.load(pipeimage).get_width() / 2
+            pipe_mid_pos = pipe['x'] + game_images['pipeimage'][0].get_width() / 2
             if pipe_mid_pos <= ye_mid_pos < pipe_mid_pos:
                 your_score += 1
                 print(f"Your score is {your_score}")
@@ -102,7 +118,7 @@ def flappy_ye():
         if ye_flapped:
             ye_flapped = False
 
-        player_height = pygame.image.load(yeplayer_image).get_height()
+        player_height = game_images['yebird'].get_height()
         vertical = vertical + ye_velocity_y
 
         for upper_pipe, lower_pipe in zip(up_pipes, down_pipes):
@@ -118,28 +134,28 @@ def flappy_ye():
             new_pipe = create_pipe()
             up_pipes.append(new_pipe[0])
 
-        window.blit(pygame.image.load(background_image).convert_alpha(), (0, 0))
+        window.blit(game_images['background'], (0, 0))
         for upper_pipe, lower_pipe in zip(up_pipes, down_pipes):
-            window.blit(pygame.transform.rotate(pygame.image.load(pipeimage).convert_alpha(), 180),
+            window.blit(pygame.transform.rotate(game_images['pipeimage'][0].convert_alpha(), 180),
                         (upper_pipe['x'], upper_pipe['y']))
-            window.blit(pygame.image.load(pipeimage).convert_alpha(),
+            window.blit(game_images['pipeimage'][1].convert_alpha(),
                         (lower_pipe['x'], lower_pipe['y']))
 
-        window.blit(pygame.image.load(sealevel_image).convert_alpha(), (ground, elevation))
-        window.blit(pygame.image.load(yeplayer_image).convert_alpha(), (horizontal, vertical))
+        window.blit(game_images['sea_level'], (ground, elevation))
+        window.blit(game_images['yebird'], (horizontal, vertical))
 
         pygame.display.update()
         pygame.time.Clock().tick(framepersecond)
 
 # Function to check if the game is over
-def is_game_over(horizontal, vertical, up_pipes, down_pipes):
+def is_game_over(horizontal, vertical, up_pipes, down_pipes, game_images):
     if vertical > elevation or vertical < 0:
         return True
-    ye_mid_pos = horizontal + pygame.image.load(yeplayer_image).get_width() / 2
+    ye_mid_pos = horizontal + game_images['yebird'].get_width() / 2
 
     for pipe in down_pipes:
-        if (vertical + pygame.image.load(yeplayer_image).get_height() > pipe['y'] and
-                abs(horizontal - (pipe['x']) * 2) < pygame.image.load(pipeimage).get_width()):
+        if (vertical + game_images['yebird'].get_height() > pipe['y'] and
+                abs(horizontal - (pipe['x']) * 2) < game_images['pipeimage'][0].get_width()):
             return True
     return False
 
@@ -149,7 +165,7 @@ if __name__ == "__main__":
 
     while True:
         horizontal = int(window_width / 5)
-        vertical = int((window_height - pygame.image.load(yeplayer_image).get_height()) / 2)
+        vertical = int((window_height - game_images['yebird'].get_height()) / 2)
         ground = 0
         while True:
             for event in pygame.event.get():
@@ -159,8 +175,8 @@ if __name__ == "__main__":
                 elif event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
                     flappy_ye()
                 else:
-                    window.blit(pygame.image.load(background_image).convert_alpha(), (0, 0))
-                    window.blit(pygame.image.load(yeplayer_image).convert_alpha(), (horizontal, vertical))
-                    window.blit(pygame.image.load(sealevel_image).convert_alpha(), (ground, elevation))
+                    window.blit(game_images['background'], (0, 0))
+                    window.blit(game_images['yebird'], (horizontal, vertical))
+                    window.blit(game_images['sea_level'], (ground, elevation))
                     pygame.display.update()
                     pygame.time.Clock().tick(framepersecond)

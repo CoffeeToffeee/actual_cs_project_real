@@ -4,6 +4,7 @@ import mediapipe as mp
 import time as t
 import pyautogui as pg
 import math
+import pygame
 
 # Set the width and height of the screen
 screen_width, screen_height = pg.size()
@@ -19,8 +20,15 @@ hands = mpHands.Hands()
 # Declaring other variables
 lmList = []
 pointer_mode = False
-pinch_threshold = 35
-cooldown = 0.1
+pinch_threshold = 45
+cooldown = 0.05
+
+
+# Creating functions
+def sounds(file_path):
+    pygame.mixer.init()
+    pygame.mixer.music.load(file_path)
+    pygame.mixer.music.play()
 
 
 def toggle(thing):
@@ -39,8 +47,7 @@ def dist_thumb(landmark):
     return distance
 
 
-t.sleep(2)
-use = input("What do you want to use the app for [game,spotify]: ")
+
 while True:
     success, img = cap.read()
     # Mirror the image horizontally
@@ -77,38 +84,19 @@ while True:
                 print("Disabling pointer only mode")
         # Conditions for pointer only mode
         if pointer_mode:
+            t.sleep(cooldown)
             if dist_thumb(8) < pinch_threshold:
                 print("Clicking")
                 pg.click(button='right')  # Simulate clicking
-
         else:
-            if use == "spotify":
-                if dist_thumb(8) < pinch_threshold:
-                    print("Play/Pause")
-                    pg.press('space')  # Simulate pressing the spacebar for play/pause
+            t.sleep(cooldown)
+            if dist_thumb(8) < pinch_threshold:
+                print("Clicking Space bar")
+                pg.press('space')
 
-                if dist_thumb(20) < pinch_threshold:
-                    print("Skipping track")
-                    pg.hotkey('command', 'right')  # Simulate pressing Command + right arrow for skipping track
+            # if dist_thumb(20) < pinch_threshold:
 
-                if dist_thumb(16) < pinch_threshold:
-                    print("Exiting")
-                    exit()
-
-            elif use == "game":
-                if dist_thumb(8) < pinch_threshold:
-                    print("Clicking Space bar")
-                    pg.press('space')
-
-                if dist_thumb(20) < pinch_threshold:
-                    print("Pressing escape")
-                    pg.press("esc")
-
-                if dist_thumb(16) < pinch_threshold:
-                    print("Exiting")
-                    pg.press("esc")
-                    exit()
-
-            else:
-                print("Invalid input")
+            if dist_thumb(16) < pinch_threshold:
+                print("Exiting")
+                pg.press("esc")
                 exit()
